@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'services/twist_service.dart';
+import 'services/vpn_detector.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 
@@ -83,11 +84,18 @@ class AuthCheck extends StatefulWidget {
 
 class _AuthCheckState extends State<AuthCheck> {
   late Future<bool> _checkAuth;
+  bool _vpnDetected = false;
 
   @override
   void initState() {
     super.initState();
     _checkAuth = _checkUserAuth();
+    _detectVPN();
+  }
+
+  Future<void> _detectVPN() async {
+    final vpnActive = await VpnDetector.isVpnConnected();
+    setState(() => _vpnDetected = vpnActive);
   }
 
   Future<bool> _checkUserAuth() async {
@@ -97,6 +105,79 @@ class _AuthCheckState extends State<AuthCheck> {
 
   @override
   Widget build(BuildContext context) {
+    if (_vpnDetected) {
+      return Scaffold(
+        backgroundColor: const Color(0xFF0F0F0F),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Icon(
+                    Icons.vpn_lock,
+                    size: 60,
+                    color: Colors.red,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  '🔒 VPN مكتشف',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'عذراً، هذا التطبيق لا يعمل مع تفعيل VPN\n\nيرجى إيقاف الـ VPN والمحاولة مجدداً',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFFB0B0B0),
+                    height: 1.8,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      setState(() => _vpnDetected = false);
+                      _detectVPN();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFFF9800),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'تحديث الفحص',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return FutureBuilder<bool>(
       future: _checkAuth,
       builder: (context, snapshot) {
