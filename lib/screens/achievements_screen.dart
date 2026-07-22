@@ -233,7 +233,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                             color: Colors.white,
                           ),
                         ),
-                );
+                ),
               ),
 
               const SizedBox(height: 20),

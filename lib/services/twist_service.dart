@@ -49,8 +49,7 @@ class TwistService {
         Uri.parse('$baseUrl/music/Dlogin/sendCode'),
         headers: _buildHeaders(),
         body: jsonEncode({'dial': formattedPhone}),
-        timeout: const Duration(seconds: 10),
-      );
+      ).timeout(const Duration(seconds: 10));
 
       return response.statusCode == 200;
     } catch (e) {
@@ -80,8 +79,7 @@ class TwistService {
           'socialServiceName': '',
           'socialServiceToken': '',
         }),
-        timeout: const Duration(seconds: 10),
-      );
+      ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -108,8 +106,7 @@ class TwistService {
       final response = await http.get(
         Uri.parse('$baseUrl/music/user/loyalty/balance/details'),
         headers: _buildHeaders(),
-        timeout: const Duration(seconds: 10),
-      );
+      ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -131,8 +128,7 @@ class TwistService {
       final response = await http.get(
         Uri.parse('$baseUrl/music/user/loyalty/achievements/v2'),
         headers: _buildHeaders(),
-        timeout: const Duration(seconds: 10),
-      );
+      ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode != 200) return 0;
 
@@ -158,8 +154,7 @@ class TwistService {
             final taskRes = await http.post(
               Uri.parse('$baseUrl/music/loyalty/action/$taskId'),
               headers: _buildHeaders(),
-              timeout: const Duration(seconds: 10),
-            );
+            ).timeout(const Duration(seconds: 10));
             
             if (taskRes.statusCode == 200) {
               completedCount++;
@@ -184,8 +179,7 @@ class TwistService {
       final response = await http.post(
         Uri.parse('$baseUrl/music/loyalty/redeem/$redeemCode'),
         headers: _buildHeaders(),
-        timeout: const Duration(seconds: 10),
-      );
+      ).timeout(const Duration(seconds: 10));
 
       return response.statusCode == 200;
     } catch (e) {
