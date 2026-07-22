@@ -9,6 +9,8 @@ class TwistService {
   String? _tgRefreshToken;
   String? _tgDeviceId;
 
+  final http.Client _httpClient = http.Client();
+
   Map<String, String> _buildHeaders() {
     return {
       'user-agent': 'Twist-Mobile/11.2.10 (Android; 12; SM-A217F; music; ar-AE)',
@@ -45,11 +47,13 @@ class TwistService {
         }
       }
 
-      final response = await http.post(
-        Uri.parse('$baseUrl/music/Dlogin/sendCode'),
-        headers: _buildHeaders(),
-        body: jsonEncode({'dial': formattedPhone}),
-      ).timeout(const Duration(seconds: 10));
+      final response = await _httpClient
+          .post(
+            Uri.parse('$baseUrl/music/Dlogin/sendCode'),
+            headers: _buildHeaders(),
+            body: jsonEncode({'dial': formattedPhone}),
+          )
+          .timeout(const Duration(seconds: 10));
 
       return response.statusCode == 200;
     } catch (e) {
@@ -70,25 +74,30 @@ class TwistService {
         }
       }
 
-      final response = await http.post(
-        Uri.parse('$baseUrl/music/Dlogin/verify'),
-        headers: _buildHeaders(),
-        body: jsonEncode({
-          'dial': formattedPhone,
-          'verifyCode': code,
-          'socialServiceName': '',
-          'socialServiceToken': '',
-        }),
-      ).timeout(const Duration(seconds: 10));
+      final response = await _httpClient
+          .post(
+            Uri.parse('$baseUrl/music/Dlogin/verify'),
+            headers: _buildHeaders(),
+            body: jsonEncode({
+              'dial': formattedPhone,
+              'verifyCode': code,
+              'socialServiceName': '',
+              'socialServiceToken': '',
+            }),
+          )
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        
+
         if (data is Map) {
-          _authToken = data['token'] ?? data['authorization'] ?? response.headers['authorization']?.replaceAll('Bearer ', '');
+          _authToken = data['token'] ??
+              data['authorization'] ??
+              response.headers['authorization']?.replaceAll('Bearer ', '');
           _accessToken = data['accessToken'] ?? data['access_token'] ?? '';
           _tgToken = data['tgToken'] ?? data['tg_token'] ?? '';
-          _tgRefreshToken = data['tgRefreshToken'] ?? data['tg_refresh_token'] ?? '';
+          _tgRefreshToken =
+              data['tgRefreshToken'] ?? data['tg_refresh_token'] ?? '';
           _tgDeviceId = data['tgDeviceId'] ?? data['tg_device_id'] ?? '22821093';
         }
 
@@ -103,10 +112,12 @@ class TwistService {
 
   Future<int> getBalance() async {
     try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/music/user/loyalty/balance/details'),
-        headers: _buildHeaders(),
-      ).timeout(const Duration(seconds: 10));
+      final response = await _httpClient
+          .get(
+            Uri.parse('$baseUrl/music/user/loyalty/balance/details'),
+            headers: _buildHeaders(),
+          )
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -125,10 +136,12 @@ class TwistService {
 
   Future<int> completeAchievements() async {
     try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/music/user/loyalty/achievements/v2'),
-        headers: _buildHeaders(),
-      ).timeout(const Duration(seconds: 10));
+      final response = await _httpClient
+          .get(
+            Uri.parse('$baseUrl/music/user/loyalty/achievements/v2'),
+            headers: _buildHeaders(),
+          )
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode != 200) return 0;
 
@@ -140,29 +153,31 @@ class TwistService {
 
       for (var category in categories) {
         if (category is! Map) continue;
-        
+
         final tasks = category['badges'] as List? ?? [];
-        
+
         for (var task in tasks) {
           if (task is! Map) continue;
           if (task['rewarded'] == true) continue;
-          
+
           final taskId = task['id'];
           if (taskId == null) continue;
 
           try {
-            final taskRes = await http.post(
-              Uri.parse('$baseUrl/music/loyalty/action/$taskId'),
-              headers: _buildHeaders(),
-            ).timeout(const Duration(seconds: 10));
-            
+            final taskRes = await _httpClient
+                .post(
+                  Uri.parse('$baseUrl/music/loyalty/action/$taskId'),
+                  headers: _buildHeaders(),
+                )
+                .timeout(const Duration(seconds: 10));
+
             if (taskRes.statusCode == 200) {
               completedCount++;
             }
           } catch (e) {
             print('Task Error: $e');
           }
-          
+
           await Future.delayed(const Duration(milliseconds: 200));
         }
       }
@@ -176,10 +191,12 @@ class TwistService {
 
   Future<bool> redeemUnits(String redeemCode) async {
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/music/loyalty/redeem/$redeemCode'),
-        headers: _buildHeaders(),
-      ).timeout(const Duration(seconds: 10));
+      final response = await _httpClient
+          .post(
+            Uri.parse('$baseUrl/music/loyalty/redeem/$redeemCode'),
+            headers: _buildHeaders(),
+          )
+          .timeout(const Duration(seconds: 10));
 
       return response.statusCode == 200;
     } catch (e) {
